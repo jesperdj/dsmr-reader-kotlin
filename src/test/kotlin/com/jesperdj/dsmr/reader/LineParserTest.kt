@@ -6,7 +6,7 @@ import org.junit.Test
 class LineParserTest {
 
     @Test
-    fun testReceiveSingleLine() {
+    fun testParseSingleLine() {
         val lines = mutableListOf<String>()
         val parse = lineParser { lines += it }
 
@@ -16,7 +16,7 @@ class LineParserTest {
     }
 
     @Test
-    fun testReceiveMultipleLines() {
+    fun testParseMultipleLines() {
         val lines = mutableListOf<String>()
         val parse = lineParser { lines += it }
 
@@ -26,7 +26,7 @@ class LineParserTest {
     }
 
     @Test
-    fun testReceiveInParts() {
+    fun testParseInParts() {
         val lines = mutableListOf<String>()
         val parse = lineParser { lines += it }
 

@@ -6,7 +6,7 @@ import org.junit.Test
 class MessageParserTest {
 
     @Test
-    fun testReadMessage() {
+    fun testParseMessage() {
         val messages = mutableListOf<Message>()
         val parse = messageParser { messages += it }
 

@@ -87,6 +87,8 @@ fun main(args: Array<String>) {
     try {
         Thread.currentThread().join()
     } catch (e: InterruptedException) {
+        log.warn("Main thread interrupted")
         timer.cancel()
+        serial.close()
     }
 }
