@@ -5,18 +5,23 @@ import com.pi4j.io.serial.DataBits
 import com.pi4j.io.serial.FlowControl
 import com.pi4j.io.serial.Parity
 import com.pi4j.io.serial.SerialConfig
+import com.pi4j.io.serial.SerialDataEvent
 import com.pi4j.io.serial.SerialDataEventListener
 import com.pi4j.io.serial.SerialFactory
 import com.pi4j.io.serial.StopBits
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import java.io.BufferedWriter
 import java.io.FileOutputStream
+import java.io.IOException
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedDeque
 import kotlin.concurrent.fixedRateTimer
+import kotlin.system.exitProcess
 
-val log: Logger = ConsoleLogger()
+val log: Logger = LogManager.getLogger()
 
 fun main(args: Array<String>) {
     log.info("DSMR Reader")
@@ -33,19 +38,26 @@ fun main(args: Array<String>) {
 
     val queue: Deque<Message> = ConcurrentLinkedDeque()
 
-    val initiate: TimerTask.() -> Unit = {
+    val parseAndEnqueue = lineParser(messageParser { message -> queue.addLast(message) })
+
+    serial.addListener(SerialDataEventListener { event: SerialDataEvent ->
+        try {
+            parseAndEnqueue(event.asciiString)
+        } catch (e: IOException) {
+            log.error("Error while reading data", e)
+        }
+    })
+
+    try {
         log.debug("Opening connection")
         serial.open(serialConfig)
         log.debug("Connection opened")
+    } catch (e: IOException) {
+        log.fatal("Error while opening connection", e)
+        exitProcess(1)
     }
 
-    val read = lineReader(messageReader {
-        queue.addLast(it)
-        serial.close()
-        log.debug("Connection closed")
-    })
-
-    val store: TimerTask.() -> Unit = {
+    val timer = fixedRateTimer(initialDelay = 10000L, period = 300000L) {
         log.debug("Saving messages")
 
         var count = 0
@@ -72,15 +84,9 @@ fun main(args: Array<String>) {
         log.info("Saved $count messages")
     }
 
-    serial.addListener(SerialDataEventListener { read(it) })
-
-    val receiveTimer = fixedRateTimer(initialDelay = 1000L, period = 60000L, action = initiate)
-    val storeTimer = fixedRateTimer(initialDelay = 5000L, period = 300000L, action = store)
-
     try {
         Thread.currentThread().join()
     } catch (e: InterruptedException) {
-        receiveTimer.cancel()
-        storeTimer.cancel()
+        timer.cancel()
     }
 }

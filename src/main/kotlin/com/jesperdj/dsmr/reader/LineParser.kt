@@ -1,13 +1,11 @@
 package com.jesperdj.dsmr.reader
 
-import com.pi4j.io.serial.SerialDataEvent
-
-class LineReader(private val consumer: (String) -> Unit) : (SerialDataEvent) -> Unit {
+class LineParser(private val consumer: (String) -> Unit) : (String) -> Unit {
 
     private val builder: StringBuilder = StringBuilder(256)
 
-    override fun invoke(event: SerialDataEvent) {
-        builder.append(event.asciiString)
+    override fun invoke(text: String) {
+        builder.append(text)
 
         var i = builder.indexOf("\r\n")
         while (i != -1) {
@@ -18,4 +16,4 @@ class LineReader(private val consumer: (String) -> Unit) : (SerialDataEvent) -> 
     }
 }
 
-fun lineReader(consumer: (String) -> Unit) = LineReader(consumer)
+fun lineParser(consumer: (String) -> Unit) = LineParser(consumer)

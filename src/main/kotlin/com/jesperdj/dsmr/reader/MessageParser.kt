@@ -1,6 +1,6 @@
 package com.jesperdj.dsmr.reader
 
-class MessageReader(private val consumer: (Message) -> Unit) : (String) -> Unit {
+class MessageParser(private val consumer: (Message) -> Unit) : (String) -> Unit {
 
     companion object {
         private val START_OF_MESSAGE = Regex("/.{3}5.*\\r\\n")
@@ -24,4 +24,4 @@ class MessageReader(private val consumer: (Message) -> Unit) : (String) -> Unit 
     }
 }
 
-fun messageReader(consumer: (Message) -> Unit) = MessageReader(consumer)
+fun messageParser(consumer: (Message) -> Unit) = MessageParser(consumer)
