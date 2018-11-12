@@ -57,6 +57,8 @@ fun main(args: Array<String>) {
         exitProcess(1)
     }
 
+    var totalCount = 0L
+
     val timer = fixedRateTimer(initialDelay = 10000L, period = 300000L) {
         log.debug("Saving messages")
 
@@ -76,12 +78,13 @@ fun main(args: Array<String>) {
 
             message.records.forEach(out!!::write)
             count++
+            totalCount++
 
             message = queue.pollFirst()
         }
 
         out?.close()
-        log.info("Saved $count messages")
+        log.info("Saved {} messages; total {}", count, totalCount)
     }
 
     try {
